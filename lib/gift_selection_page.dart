@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'gift_display_page.dart'; // Import the GiftDisplayPage
+import 'gift_display_page.dart';
 
 class GiftSelectionPage extends StatefulWidget {
   @override
@@ -114,8 +114,8 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
 
     final gifts = [
       {'budget': 'Low', 'gender': 'Male', 'relationship': 'Friends', 'name': 'Keychain', 'price': '\$5', 'description': 'A simple keychain to carry around.'},
-      {'budget': 'Low', 'gender': 'Male', 'relationship': 'Family', 'name': 'Coffee Mug', 'price': '\$10', 'description': 'A personalized coffee mug for your family.'},
-      // Add more gift options here...
+      {'budget': 'Medium', 'gender': 'Female', 'relationship': 'Lovers', 'name': 'Perfume', 'price': '\$70', 'description': 'A romantic fragrance for your lover.'},
+      // Add more gifts as needed.
     ];
 
     for (var gift in gifts) {
