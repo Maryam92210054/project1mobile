@@ -19,7 +19,7 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gift Selection'),
+        title: Text('Gift Generator'),
         centerTitle: true,
       ),
       body: Padding(
@@ -104,18 +104,10 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
   }
 
   Map<String, String> _generateGift() {
-    if (selectedBudget == null || selectedGender == null || selectedRelationship == null) {
-      return {
-        'name': 'Please select all options!',
-        'price': '',
-        'description': ''
-      };
-    }
-
     final gifts = [
       {'budget': 'Low', 'gender': 'Male', 'relationship': 'Friends', 'name': 'Keychain', 'price': '\$5', 'description': 'A simple keychain to carry around.'},
-      {'budget': 'Medium', 'gender': 'Female', 'relationship': 'Lovers', 'name': 'Perfume', 'price': '\$70', 'description': 'A romantic fragrance for your lover.'},
-      // Add more gifts as needed.
+      {'budget': 'Low', 'gender': 'Male', 'relationship': 'Family', 'name': 'Coffee Mug', 'price': '\$10', 'description': 'A personalized coffee mug for your family.'},
+      // ... (add the rest of the gift options here)
     ];
 
     for (var gift in gifts) {
@@ -123,9 +115,9 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
           gift['gender'] == selectedGender &&
           gift['relationship'] == selectedRelationship) {
         return {
-          'name': gift['name'] as String,
-          'price': gift['price'] as String,
-          'description': gift['description'] as String,
+          'name': gift['name']!,
+          'price': gift['price']!,
+          'description': gift['description']!,
         };
       }
     }
