@@ -1,5 +1,29 @@
 import 'package:flutter/material.dart';
-import 'gift_display_page.dart';
+import 'gift.dart'; // Import the Gift class
+import 'gift_display_page.dart'; // Import gift display page
+
+// Sample gift data, assuming the `Gift` class now has a `budget` field.
+final List<Gift> giftData = [
+  // Male - Gaming
+  Gift(name: 'Gaming Mouse', description: 'A high-performance gaming mouse.', interest: 'Gaming', gender: 'Male', budget: 'Low'),
+  Gift(name: 'Gaming Headset', description: 'Noise-canceling gaming headset.', interest: 'Gaming', gender: 'Male', budget: 'Medium'),
+  Gift(name: 'Gaming Chair', description: 'Ergonomic chair for long gaming sessions.', interest: 'Gaming', gender: 'Male', budget: 'High'),
+
+  // Male - Sports
+  Gift(name: 'Water Bottle', description: 'A portable water bottle for hydration during exercise.', interest: 'Sports', gender: 'Male', budget: 'Low'),
+  Gift(name: 'Sports Bag', description: 'A spacious bag to carry all sports gear.', interest: 'Sports', gender: 'Male', budget: 'Medium'),
+  Gift(name: 'Smart Sports Watch', description: 'A watch with fitness tracking and GPS features for athletes.', interest: 'Sports', gender: 'Male', budget: 'High'),
+
+  // Female - Fashion
+  Gift(name: 'Leather Purse', description: 'A stylish leather purse for everyday use.', interest: 'Fashion', gender: 'Female', budget: 'Low'),
+  Gift(name: 'Jewelry Set', description: 'A beautiful jewelry set for any occasion.', interest: 'Fashion', gender: 'Female', budget: 'Medium'),
+  Gift(name: 'Designer Handbag', description: 'A luxury designer handbag for fashion-forward individuals.', interest: 'Fashion', gender: 'Female', budget: 'High'),
+
+  // Female - Beauty
+  Gift(name: 'Skincare Set', description: 'A complete skincare routine for glowing skin.', interest: 'Beauty', gender: 'Female', budget: 'Low'),
+  Gift(name: 'Makeup Kit', description: 'A complete makeup kit with high-quality products.', interest: 'Beauty', gender: 'Female', budget: 'Medium'),
+  Gift(name: 'Spa Gift Set', description: 'A luxurious spa set for relaxation and rejuvenation.', interest: 'Beauty', gender: 'Female', budget: 'High'),
+];
 
 class GiftSelectionPage extends StatefulWidget {
   @override
@@ -9,17 +33,20 @@ class GiftSelectionPage extends StatefulWidget {
 class _GiftSelectionPageState extends State<GiftSelectionPage> {
   String? selectedBudget;
   String? selectedGender;
-  String? selectedRelationship;
+  String? selectedInterest;
 
   final List<String> budgets = ['Low', 'Medium', 'High'];
   final List<String> genders = ['Male', 'Female'];
-  final List<String> relationships = ['Friends', 'Family', 'Lovers'];
+  final Map<String, List<String>> interestsByGender = {
+    'Male': ['Gaming', 'Sports'],
+    'Female': ['Fashion', 'Beauty'],
+  };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gift Generator'),
+        title: Text('Gift Selection'),
         centerTitle: true,
       ),
       body: Padding(
@@ -27,7 +54,14 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Select Your Budget:', style: TextStyle(fontSize: 18)),
+            // Budget Selection with explanation
+            Text('Select Your Budget:', style: TextStyle(fontSize: 25)),
+            SizedBox(height: 8),
+            Text(
+              'Low: \$0 - \$50\nMedium: \$51 - \$150\nHigh: \$151 and above',
+              style: TextStyle(fontSize: 19),
+            ),
+            SizedBox(height: 8),
             DropdownButton<String>(
               isExpanded: true,
               value: selectedBudget,
@@ -45,7 +79,9 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
               },
             ),
             SizedBox(height: 20),
-            Text('Select Gender of Gift Receiver:', style: TextStyle(fontSize: 18)),
+
+            // Gender Selection
+            Text('Select Gender:', style: TextStyle(fontSize: 25)),
             Column(
               children: genders.map((gender) {
                 return RadioListTile<String>(
@@ -55,44 +91,56 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
                   onChanged: (value) {
                     setState(() {
                       selectedGender = value;
+                      selectedInterest = null; // Reset interest when gender changes
                     });
                   },
                 );
               }).toList(),
             ),
             SizedBox(height: 20),
-            Text('Select Your Relationship:', style: TextStyle(fontSize: 18)),
+
+            // Interest Selection (based on Gender)
+            Text('Select Interest:', style: TextStyle(fontSize: 25)),
             DropdownButton<String>(
               isExpanded: true,
-              value: selectedRelationship,
-              hint: Text('Choose relationship'),
-              items: relationships.map((relationship) {
+              value: selectedInterest,
+              hint: Text('Choose interest'),
+              items: selectedGender == null
+                  ? []
+                  : interestsByGender[selectedGender]!.map((interest) {
                 return DropdownMenuItem(
-                  value: relationship,
-                  child: Text(relationship),
+                  value: interest,
+                  child: Text(interest),
                 );
               }).toList(),
               onChanged: (value) {
                 setState(() {
-                  selectedRelationship = value;
+                  selectedInterest = value;
                 });
               },
             ),
-            Spacer(),
+            SizedBox(height: 40),
+
+            // Suggest Gift Button
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  var giftData = _generateGift();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => GiftDisplayPage(
-                        giftName: giftData['name']!,
-                        giftPrice: giftData['price']!,
-                        giftDescription: giftData['description']!,
+                  var gift = _generateGift();
+                  if (gift != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GiftDisplayPage(
+                          giftName: gift.name,
+                          giftDescription: gift.description,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('No gift found for your selection!')),
+                    );
+                  }
                 },
                 child: Text('Suggest a Gift'),
               ),
@@ -103,29 +151,15 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
     );
   }
 
-  Map<String, String> _generateGift() {
-    final gifts = [
-      {'budget': 'Low', 'gender': 'Male', 'relationship': 'Friends', 'name': 'Keychain', 'price': '\$5', 'description': 'A simple keychain to carry around.'},
-      {'budget': 'Low', 'gender': 'Male', 'relationship': 'Family', 'name': 'Coffee Mug', 'price': '\$10', 'description': 'A personalized coffee mug for your family.'},
-      // ... (add the rest of the gift options here)
-    ];
-
-    for (var gift in gifts) {
-      if (gift['budget'] == selectedBudget &&
-          gift['gender'] == selectedGender &&
-          gift['relationship'] == selectedRelationship) {
-        return {
-          'name': gift['name']!,
-          'price': gift['price']!,
-          'description': gift['description']!,
-        };
+  Gift? _generateGift() {
+    for (var gift in giftData) {
+      // Check if the selected gender, interest, and budget match the gift's attributes
+      if (gift.gender == selectedGender &&
+          gift.interest == selectedInterest &&
+          gift.budget == selectedBudget) {
+        return gift;
       }
     }
-
-    return {
-      'name': 'No gift found for your selection!',
-      'price': '',
-      'description': ''
-    };
+    return null;
   }
 }
