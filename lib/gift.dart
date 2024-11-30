@@ -1,5 +1,6 @@
+
 class Gift {
-  final String name;
+   String name;
   final String description;
   final String interest;
   final String gender;
@@ -13,14 +14,5 @@ class Gift {
     required this.budget,
   });
 
-  // Factory constructor to create a Gift object from a Map
-  factory Gift.fromMap(Map<String, String> map) {
-    return Gift(
-      name: map['name'] ?? '',
-      description: map['description'] ?? '',
-      interest: map['interest'] ?? '',
-      gender: map['gender'] ?? '',
-      budget: map['budget'] ?? '',
-    );
-  }
 }
+
