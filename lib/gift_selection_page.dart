@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'gift.dart'; // Import the Gift class
 import 'gift_display_page.dart'; // Import gift display page
 
-// Sample gift data, assuming the `Gift` class now has a `budget` field.
+
 final List<Gift> giftData = [
   // Male - Gaming
   Gift(name: 'Gaming Mouse', description: 'A high-performance gaming mouse.', interest: 'Gaming', gender: 'Male', budget: 'Low'),
