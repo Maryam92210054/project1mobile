@@ -1,41 +1,24 @@
-
-
 import 'package:flutter/material.dart';
-import 'welcome_page.dart';
+import 'auth_page.dart';
+import 'home_page.dart';
 
 void main() {
-  runApp(GiftGeneratorApp());
+  runApp(const MyApp());
 }
 
-class GiftGeneratorApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Gift Generator',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: Colors.red,
-          accentColor: Colors.yellow,
-        ),
-        scaffoldBackgroundColor: Colors.yellow[50],
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-          ),
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.red,
-          titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      home: WelcomePage(),
+      title: 'Flutter Auth App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const AuthPage(isSignIn: false), // Default is the Log In page
+      routes: {
+        '/home': (context) => const HomePage(),
+      },
     );
   }
 }
-
