@@ -15,6 +15,8 @@ class GiftSuggestionPage extends StatefulWidget {
 class _GiftSuggestionPageState extends State<GiftSuggestionPage> {
   List<dynamic> gifts = [];
   bool isLoading = true;
+  TextEditingController receiverController = TextEditingController();
+  String? selectedGiftId; // To store the selected gift ID
 
   @override
   void initState() {
@@ -67,32 +69,104 @@ class _GiftSuggestionPageState extends State<GiftSuggestionPage> {
     }
   }
 
+  Future<void> confirmOrder() async {
+    if (selectedGiftId == null || receiverController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select a gift and enter a receiver name')),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://giftgenerator.atwebpages.com/confirmOrder.php'),
+        body: {
+          'gift_id': selectedGiftId,
+          'receiver_name': receiverController.text,
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (data['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Order confirmed successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data['message'])),
+        );
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred while confirming the order')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Suggested Gifts')),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : gifts.isEmpty
-          ? Center(child: Text('No gifts found for the selected criteria'))
-          : ListView.builder(
-        itemCount: gifts.length,
-        itemBuilder: (context, index) {
-          final gift = gifts[index];
-          return Card(
-            margin: EdgeInsets.all(8.0),
-            child: ListTile(
-              title: Text(gift['name']), // Displaying gift name
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Description: ${gift['description']}'), // Displaying description
-                  Text('Price: \$${gift['price']}'), // Displaying price
-                ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Receiver's Name Input Field
+            TextField(
+              controller: receiverController,
+              decoration: InputDecoration(
+                labelText: 'Receiver\'s Name',
+                border: OutlineInputBorder(),
               ),
             ),
-          );
-        },
+            SizedBox(height: 16),
+
+            // Gift Suggestions List or Loading Indicator
+            isLoading
+                ? Center(child: CircularProgressIndicator())
+                : gifts.isEmpty
+                ? Center(child: Text('No gifts found for the selected criteria'))
+                : Expanded(
+              child: ListView.builder(
+                itemCount: gifts.length,
+                itemBuilder: (context, index) {
+                  final gift = gifts[index];
+                  return Card(
+                    margin: EdgeInsets.all(8.0),
+                    child: ListTile(
+                      title: Text(gift['name']),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Description: ${gift['description']}'),
+                          Text('Price: \$${gift['price']}'),
+                        ],
+                      ),
+                      trailing: Radio<String>(
+                        value: gift['id'].toString(),
+                        groupValue: selectedGiftId,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedGiftId = value;
+                          });
+                          print('Selected Gift ID: $value'); // Debugging log
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Confirm Order Button
+            ElevatedButton(
+              onPressed: confirmOrder,
+              child: Text('Confirm Order'),
+            ),
+          ],
+        ),
       ),
     );
   }
