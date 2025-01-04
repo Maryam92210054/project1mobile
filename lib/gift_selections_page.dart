@@ -1,154 +1,192 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'gift.dart';
+import 'gift_suggestion_page.dart';
 
-class SelectionScreen extends StatefulWidget {
-  final int userId;
+class Budget {
+  final String id;
+  final String amount;
 
-  SelectionScreen({required this.userId});
+  Budget({required this.id, required this.amount});
 
-  @override
-  _SelectionScreenState createState() => _SelectionScreenState();
+  factory Budget.fromJson(Map<String, dynamic> json) {
+    return Budget(id: json['id'], amount: json['amount']);
+  }
 }
 
-class _SelectionScreenState extends State<SelectionScreen> {
-  List<dynamic> genders = [];
-  List<dynamic> budgets = [];
-  List<dynamic> interests = [];
+class Gender {
+  final String id;
+  final String genderName;
 
-  int? selectedGenderId;
-  int? selectedBudgetId;
-  int? selectedInterestId;
+  Gender({required this.id, required this.genderName});
+
+  factory Gender.fromJson(Map<String, dynamic> json) {
+    return Gender(id: json['id'], genderName: json['gender_name']);
+  }
+}
+
+class Interest {
+  final String id;
+  final String interestName;
+  final String genderId;
+
+  Interest({required this.id, required this.interestName, required this.genderId});
+
+  factory Interest.fromJson(Map<String, dynamic> json) {
+    return Interest(
+      id: json['id'],
+      interestName: json['interest_name'],
+      genderId: json['gender_id'],
+    );
+  }
+}
+
+class GiftSelectionPage extends StatefulWidget {
+  @override
+  _GiftSelectionPageState createState() => _GiftSelectionPageState();
+}
+
+class _GiftSelectionPageState extends State<GiftSelectionPage> {
+  String? selectedBudget;
+  String? selectedGender;
+  String? selectedInterest;
+
+  List<Budget> classBudgets = [];
+  List<Gender> classGenders = [];
+  List<Interest> classInterests = [];
+  List<Interest> filteredInterests = [];
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    fetchSelectionData();
   }
 
-  Future<void> fetchData() async {
+  Future<void> fetchSelectionData() async {
     try {
       final response = await http.get(Uri.parse('http://giftgenerator.atwebpages.com/getSelectionData.php'));
+
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success']) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        if (data['success'] == true) {
           setState(() {
-            genders = data['genders'];
-            budgets = data['budgets'];
-            interests = data['interests'];
+            classBudgets = (data['budgets'] as List).map((x) => Budget.fromJson(x)).toList();
+            classGenders = (data['genders'] as List).map((x) => Gender.fromJson(x)).toList();
+            classInterests = (data['interests'] as List).map((x) => Interest.fromJson(x)).toList();
           });
         } else {
-          showError(data['message']);
+          print('Error: Success flag is false in response');
         }
       } else {
-        showError('Failed to fetch data');
+        print('Request failed with status: ${response.statusCode}');
       }
     } catch (e) {
-      showError(e.toString());
+      print('Error: $e');
     }
   }
 
-  Future<void> saveSelection() async {
-    if (selectedGenderId == null || selectedBudgetId == null || selectedInterestId == null) {
-      showError('Please select all options!');
+  void filterInterests(String? genderId) {
+    if (genderId == null) {
+      setState(() {
+        filteredInterests = [];
+        selectedInterest = null;
+      });
       return;
     }
 
-    try {
-      final response = await http.post(
-        Uri.parse('https://giftgenerator.atwebpages.com/saveSelection.php'),
-        body: {
-          'user_id': widget.userId.toString(),
-          'gender_id': selectedGenderId.toString(),
-          'budget_id': selectedBudgetId.toString(),
-          'interest_id': selectedInterestId.toString(),
-        },
+    setState(() {
+      filteredInterests = classInterests.where((interest) => interest.genderId == genderId).toList();
+      selectedInterest = null;
+    });
+  }
+
+  void suggestGift() {
+    if (selectedBudget != null && selectedInterest != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => GiftSuggestionPage(
+            budgetId: selectedBudget!,
+            interestId: selectedInterest!,
+          ),
+        ),
       );
-
-      final data = json.decode(response.body);
-
-      if (data['success']) {
-        showSuccess('Selection saved successfully!');
-      } else {
-        showError(data['message']);
-      }
-    } catch (e) {
-      showError(e.toString());
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select both Budget and Interest')),
+      );
     }
-  }
-
-  void showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message, style: TextStyle(color: Colors.green))));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Make Your Selection')),
+      appBar: AppBar(title: Text('Gift Selection')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Select Gender'),
-            DropdownButton<int>(
-              value: selectedGenderId,
-              hint: Text('Choose Gender'),
-              onChanged: (value) {
-                setState(() {
-                  selectedGenderId = value;
-                });
-              },
-              items: genders.map<DropdownMenuItem<int>>((gender) {
-                return DropdownMenuItem<int>(
-                  value: gender['id'],
-                  child: Text(gender['gender_name']),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 16),
-            Text('Select Budget'),
-            DropdownButton<int>(
-              value: selectedBudgetId,
-              hint: Text('Choose Budget'),
-              onChanged: (value) {
-                setState(() {
-                  selectedBudgetId = value;
-                });
-              },
-              items: budgets.map<DropdownMenuItem<int>>((budget) {
-                return DropdownMenuItem<int>(
-                  value: budget['id'],
-                  child: Text(budget['amount']),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 16),
-            Text('Select Interest'),
-            DropdownButton<int>(
-              value: selectedInterestId,
-              hint: Text('Choose Interest'),
-              onChanged: (value) {
-                setState(() {
-                  selectedInterestId = value;
-                });
-              },
-              items: interests.map<DropdownMenuItem<int>>((interest) {
-                return DropdownMenuItem<int>(
-                  value: interest['id'],
-                  child: Text(interest['interest_name']),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: saveSelection,
-              child: Text('Save Selection'),
-            ),
+            if (classBudgets.isEmpty || classGenders.isEmpty || classInterests.isEmpty)
+              Center(child: CircularProgressIndicator())
+            else ...[
+              DropdownButton<String>(
+                hint: Text("Select Budget"),
+                value: selectedBudget,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedBudget = newValue;
+                  });
+                },
+                items: classBudgets.map((budget) {
+                  return DropdownMenuItem<String>(
+                    value: budget.id,
+                    child: Text(budget.amount),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 20),
+              Column(
+                children: classGenders.map((gender) {
+                  return RadioListTile<String>(
+                    title: Text(gender.genderName),
+                    value: gender.id,
+                    groupValue: selectedGender,
+                    onChanged: (String? value) {
+                      setState(() {
+                        selectedGender = value;
+                        filterInterests(value);
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 20),
+              if (filteredInterests.isNotEmpty)
+                DropdownButton<String>(
+                  hint: Text("Select Interest"),
+                  value: selectedInterest,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedInterest = newValue;
+                    });
+                  },
+                  items: filteredInterests.map((interest) {
+                    return DropdownMenuItem<String>(
+                      value: interest.id,
+                      child: Text(interest.interestName),
+                    );
+                  }).toList(),
+                )
+              else if (selectedGender != null)
+                Text("No interests available for the selected gender."),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: suggestGift,
+                child: Text('Suggest Gift'),
+              ),
+            ],
           ],
         ),
       ),
