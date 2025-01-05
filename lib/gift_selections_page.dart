@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'gift.dart';
 import 'gift_suggestion_page.dart';
 
 class Budget {
@@ -115,7 +114,7 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select both Budget and Interest')),
+        const SnackBar(content: Text('Please select both Budget and Interest')),
       );
     }
   }
@@ -123,73 +122,220 @@ class _GiftSelectionPageState extends State<GiftSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Gift Selection')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            if (classBudgets.isEmpty || classGenders.isEmpty || classInterests.isEmpty)
-              Center(child: CircularProgressIndicator())
-            else ...[
-              DropdownButton<String>(
-                hint: Text("Select Budget"),
-                value: selectedBudget,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedBudget = newValue;
-                  });
-                },
-                items: classBudgets.map((budget) {
-                  return DropdownMenuItem<String>(
-                    value: budget.id,
-                    child: Text(budget.amount),
-                  );
-                }).toList(),
+            // Custom header with a curved shape and gradient
+            ClipPath(
+              clipper: CustomHeaderClipper(),
+              child: Container(
+                width: double.infinity,
+                height: 250,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.purple, Colors.pink],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/background.jpg'), // Background image
+                    fit: BoxFit.cover,
+                    opacity: 0.3,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20.0, left: 10),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.card_giftcard, size: 80, color: Colors.white),
+                              SizedBox(height: 10),
+                              Text(
+                                "Gift Selection",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              SizedBox(height: 20),
-              Column(
-                children: classGenders.map((gender) {
-                  return RadioListTile<String>(
-                    title: Text(gender.genderName),
-                    value: gender.id,
-                    groupValue: selectedGender,
-                    onChanged: (String? value) {
-                      setState(() {
-                        selectedGender = value;
-                        filterInterests(value);
-                      });
-                    },
-                  );
-                }).toList(),
+            ),
+            // Remaining content of the page
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: classBudgets.isEmpty || classGenders.isEmpty || classInterests.isEmpty
+                  ? const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.purple,
+                ),
+              )
+                  : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Choose your preferences:",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  // Budget selection in a Card
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: DropdownButtonFormField<String>(
+                        decoration: InputDecoration(
+                          labelText: 'Select Budget',
+                          border: OutlineInputBorder(),
+                        ),
+                        value: selectedBudget,
+                        items: classBudgets.map((budget) {
+                          return DropdownMenuItem<String>(
+                            value: budget.id,
+                            child: Text(budget.amount),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedBudget = value;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  // Gender selection with radio buttons in a Card
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Select Gender:",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          Column(
+                            children: classGenders.map((gender) {
+                              return RadioListTile<String>(
+                                title: Text(gender.genderName),
+                                value: gender.id,
+                                groupValue: selectedGender,
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedGender = value;
+                                    filterInterests(value);
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  // Interest selection in a Card
+                  if (filteredInterests.isNotEmpty)
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 5,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            labelText: 'Select Interest',
+                            border: OutlineInputBorder(),
+                          ),
+                          value: selectedInterest,
+                          items: filteredInterests.map((interest) {
+                            return DropdownMenuItem<String>(
+                              value: interest.id,
+                              child: Text(interest.interestName),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedInterest = value;
+                            });
+                          },
+                        ),
+                      ),
+                    )
+                  else if (selectedGender != null)
+                    const Text(
+                      "No interests available for the selected gender.",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  SizedBox(height: 20),
+                  // Suggest Gift button inside a card with a modern style
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: suggestGift,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      child: Text("Suggest Gift"),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                ],
               ),
-              SizedBox(height: 20),
-              if (filteredInterests.isNotEmpty)
-                DropdownButton<String>(
-                  hint: Text("Select Interest"),
-                  value: selectedInterest,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedInterest = newValue;
-                    });
-                  },
-                  items: filteredInterests.map((interest) {
-                    return DropdownMenuItem<String>(
-                      value: interest.id,
-                      child: Text(interest.interestName),
-                    );
-                  }).toList(),
-                )
-              else if (selectedGender != null)
-                Text("No interests available for the selected gender."),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: suggestGift,
-                child: Text('Suggest Gift'),
-              ),
-            ],
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+// Custom clipper to create a curved header
+class CustomHeaderClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0.0, size.height - 50);
+    final firstControlPoint = Offset(size.width / 2, size.height);
+    final firstEndPoint = Offset(size.width, size.height - 50);
+    path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy, firstEndPoint.dx, firstEndPoint.dy);
+    path.lineTo(size.width, 0.0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) {
+    return false;
+  }
+}
+
+void main() {
+  runApp(MaterialApp(
+    home: GiftSelectionPage(),
+  ));
 }
