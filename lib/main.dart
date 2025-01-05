@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:projectmob/gift_selections_page.dart';
+import 'package:projectmob/gift_suggestion_page.dart';
 import 'auth_page.dart';
 import 'home_page.dart';
 
@@ -18,6 +20,8 @@ class MyApp extends StatelessWidget {
       home: const AuthPage(isSignIn: false), // Default is the Log In page
       routes: {
         '/home': (context) => const HomePage(),
+
+
       },
     );
   }
