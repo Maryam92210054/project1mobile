@@ -5,7 +5,7 @@ class Gift {
   final String description;
   final String price;
   final String imageUrl;
-  final String budgetId;  // Added budgetId to the Gift class
+  final String budgetId;  
 
   Gift({
     required this.id,
@@ -13,7 +13,7 @@ class Gift {
     required this.description,
     required this.price,
     required this.imageUrl,
-    required this.budgetId,  // Add budgetId to constructor
+    required this.budgetId,  
   });
 
   factory Gift.fromJson(Map<String, dynamic> json) {
@@ -23,7 +23,7 @@ class Gift {
       description: json['description'],
       price: json['price'],
       imageUrl: json['image_url'],
-      budgetId: json['budget_id'],  // Parse the budgetId
+      budgetId: json['budget_id'],  
     );
   }
 }
