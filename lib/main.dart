@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:projectmob/gift_selections_page.dart';
-import 'package:projectmob/gift_suggestion_page.dart';
 import 'auth_page.dart';
 import 'home_page.dart';
 
