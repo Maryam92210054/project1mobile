@@ -157,6 +157,18 @@ class _GiftSuggestionPageState extends State<GiftSuggestionPage> {
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
+                  // Asset image added above receiver name field
+                  Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: const AssetImage('images/gift.png'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: receiverController,
                     decoration: InputDecoration(
@@ -178,18 +190,6 @@ class _GiftSuggestionPageState extends State<GiftSuggestionPage> {
                         return Card(
                           margin: const EdgeInsets.all(8.0),
                           child: ListTile(
-                            leading: gift['image_url'] != null &&
-                                gift['image_url'].isNotEmpty
-                                ? Image.network(
-                              gift['image_url'],
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(Icons.broken_image, size: 50);
-                              },
-                            )
-                                : Icon(Icons.image_not_supported, size: 50),
                             title: Text(gift['name']),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
