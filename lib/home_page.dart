@@ -94,15 +94,15 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       GiftCard(
                         title: 'Gift 1',
-                        image: 'https://via.placeholder.com/150',
+                        image: const AssetImage('images/G2050-BLUE.jpg'),
                       ),
                       GiftCard(
                         title: 'Gift 2',
-                        image: 'https://via.placeholder.com/150',
+                        image: const AssetImage('images/bag.jpg'),
                       ),
                       GiftCard(
                         title: 'Gift 3',
-                        image: 'https://via.placeholder.com/150',
+                        image: const AssetImage('images/kit.jpg'),
                       ),
                     ],
                   ),
@@ -159,7 +159,6 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 10),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-
                           padding: const EdgeInsets.symmetric(
                             horizontal: 30,
                             vertical: 15,
@@ -236,7 +235,7 @@ class CustomHeaderClipper extends CustomClipper<Path> {
 // Gift Card widget for featured gifts
 class GiftCard extends StatelessWidget {
   final String title;
-  final String image;
+  final dynamic image; // Can be an AssetImage or a String (URL)
 
   const GiftCard({required this.title, required this.image});
 
@@ -250,12 +249,14 @@ class GiftCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Image.network(image, height: 120, width: 120, fit: BoxFit.cover),
+          image is String && image.contains('http')
+              ? Image.network(image, height: 120, width: 120, fit: BoxFit.cover)
+              : Image(image: image, height: 120, width: 120, fit: BoxFit.cover),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.deepPurple,
@@ -289,7 +290,7 @@ class CategoryCard extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               categoryName,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.deepPurple,
